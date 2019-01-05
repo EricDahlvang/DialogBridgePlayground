@@ -8,9 +8,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
+using V3Migration;
 
 namespace V4NetFrameworkBot.Controllers
 {
+    /// <summary>
+    /// Adapted from https://github.com/Microsoft/BotBuilder-Samples/blob/master/samples/csharp_dotnetcore/30.asp-mvc-bot/BotControllerBase.cs
+    /// </summary>
     public abstract class BotControllerBase : ApiController
     {
         protected BotAccessors Accessors { get; private set; }
@@ -30,7 +34,7 @@ namespace V4NetFrameworkBot.Controllers
             var invokeResponse = await botFrameworkAdapter.ProcessActivityAsync(
                 Request.Headers.Authorization?.ToString(),
                 activity,
-                ControllerOnTurnAsync,
+                OnTurnAsync,
                 default(CancellationToken));
 
             if (invokeResponse == null)
@@ -41,27 +45,6 @@ namespace V4NetFrameworkBot.Controllers
             {
                 return Request.CreateResponse(invokeResponse.Status);
             }
-        }
-
-        private async Task ControllerOnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken)
-        {
-            // initialize Bot Data Bags, adding them to the turnContext so they will be available within dialog methods
-            //turnContext.UserData(await Accessors.UserData.GetAsync(turnContext, () => new BotDataBag()));
-            //turnContext.ConversationData(await Accessors.ConversationData.GetAsync(turnContext, () => new BotDataBag()));
-            //turnContext.PrivateConversationData(await Accessors.PrivateConversationData.GetAsync(turnContext, () => new BotDataBag()));
-
-            turnContext.TurnState.Add(BotAccessors.UserDataPropertyName, await Accessors.UserData.GetAsync(turnContext, () => new BotDataBag()));
-            turnContext.TurnState.Add(BotAccessors.ConversationDataPropertyName, await Accessors.ConversationData.GetAsync(turnContext, () => new BotDataBag()));
-            turnContext.TurnState.Add(BotAccessors.PrivateConversationDataPropertyName, await Accessors.PrivateConversationData.GetAsync(turnContext, () => new BotDataBag()));
-
-            await OnTurnAsync(turnContext, cancellationToken);
-
-            //auto save accessors
-            await Accessors.UserState.SaveChangesAsync(turnContext);
-            await Accessors.ConversationState.SaveChangesAsync(turnContext);
-            await Accessors.PrivateConversationState.SaveChangesAsync(turnContext);
-
-            //turnContext.RemoveWeakExtensions();
         }
 
         /// <summary>

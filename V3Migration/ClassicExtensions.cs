@@ -10,6 +10,9 @@ namespace Microsoft.Bot.Builder.Dialogs
     public delegate Task MessageReceivedAsync(DialogContext context, IMessageActivity message);
     public delegate Task ResumeAfter(DialogContext context, IMessageActivity result);
 
+    /// <summary>
+    /// Extensions providing support for methods existing in Bot Builder V3 but not V4
+    /// </summary>
     public static class ClassicExtensions
     {
         public static async Task PostAsync(this DialogContext dc, string message)

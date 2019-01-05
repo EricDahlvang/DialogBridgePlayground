@@ -3,20 +3,32 @@ using System.Threading.Tasks;
 using Bot.Builder.Community.Dialogs.FormFlow;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Integration;
+using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
+using V3Migration;
 using V4NetFrameworkBot.Dialogs;
 
 namespace V4NetFrameworkBot.Controllers
 {
     public class MessagesController : BotControllerBase
     {
-        public MessagesController(BotAccessors accessors)
+        ICredentialProvider _credentialProvider;
+        public MessagesController(ICredentialProvider credentialProvider, BotAccessors accessors)
             : base(accessors)
         {
+            _credentialProvider = credentialProvider;
             //todo: add dialogs
             Dialogs.Add(new RootDialog());
             Dialogs.Add(new HotelsDialog());
             Dialogs.Add(new SupportDialog());
+        }
+
+        protected override IAdapterIntegration CreateAdapter()
+        {
+            var adapter = new BotFrameworkAdapter(_credentialProvider, middleware: new DataBagsMiddleware(Accessors));
+            adapter.Use(new AutoSaveStateMiddleware(Accessors.BotStates));
+            return adapter;
         }
 
         protected override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken)
@@ -26,6 +38,10 @@ namespace V4NetFrameworkBot.Controllers
                 if (turnContext.Activity.Text.Trim().Replace(" ", "").ToUpper() == "SHOWDATA")
                 {
                     await ShowData(turnContext);
+                }
+                else if (turnContext.Activity.Text.Contains(":"))
+                {
+                    SetData(turnContext);
                 }
                 else
                 {
@@ -68,11 +84,28 @@ namespace V4NetFrameworkBot.Controllers
             }
         }
 
+        private static void SetData(ITurnContext turnContext)
+        {
+            var setData = turnContext.Activity.Text.ToUpper().Split(':');
+            if (setData[0].StartsWith("USER"))
+            {
+                turnContext.UserData().SetValue("UserDataValue", setData[1]);
+            }
+            else if (setData[0].StartsWith("PRIVATE"))
+            {
+                turnContext.PrivateConversationData().SetValue("PrivateConversationDataValue", setData[1]);
+            }
+            else
+            {
+                turnContext.ConversationData().SetValue("ConversationDataValue", setData[1]);
+            }
+        }
+
         private static async Task ShowData(ITurnContext turnContext)
         {
             IBotDataBag userData = turnContext.UserData();
             string userName = string.Empty;
-            userData.TryGetValue("UserName", out userName);
+            userData.TryGetValue("UserDataValue", out userName);
 
             IBotDataBag conversationData = turnContext.ConversationData();
             string conversationDataValue = string.Empty;

@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using V4NetCoreBot;
+using V3Migration;
 
 namespace Microsoft.Bot.Builder.Dialogs
 {

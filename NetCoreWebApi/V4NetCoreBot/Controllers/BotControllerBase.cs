@@ -14,12 +14,12 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using V3Migration;
 
 namespace V4NetCoreBot.Controllers
 {
     /// <summary>
-    /// A base class for Controllers that act as bots. To use this add a Controller to the Visual Studio project
-    /// as usual and then just edit it to swap out the base Controller class for this class.
+    /// Adapted from https://github.com/Microsoft/BotBuilder-Samples/blob/master/samples/csharp_dotnetcore/30.asp-mvc-bot/BotControllerBase.cs
     /// </summary>
     public abstract class BotControllerBase : ControllerBase
     {
@@ -58,7 +58,7 @@ namespace V4NetCoreBot.Controllers
             var invokeResponse = await botFrameworkAdapter.ProcessActivityAsync(
                 Request.Headers["Authorization"],
                 activity,
-                ControllerOnTurnAsync,
+                OnTurnAsync,
                 default(CancellationToken));
 
             if (invokeResponse == null)
@@ -78,20 +78,6 @@ namespace V4NetCoreBot.Controllers
                     }
                 }
             }
-        }
-
-        private async Task ControllerOnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken)
-        {
-            turnContext.TurnState.Add(BotAccessors.UserDataPropertyName, await Accessors.UserData.GetAsync(turnContext, () => new BotDataBag()));
-            turnContext.TurnState.Add(BotAccessors.ConversationDataPropertyName, await Accessors.ConversationData.GetAsync(turnContext, () => new BotDataBag()));
-            turnContext.TurnState.Add(BotAccessors.PrivateConversationDataPropertyName, await Accessors.PrivateConversationData.GetAsync(turnContext, () => new BotDataBag()));
-
-            await OnTurnAsync(turnContext, cancellationToken);
-
-            //auto save accessors
-            await Accessors.UserState.SaveChangesAsync(turnContext);
-            await Accessors.ConversationState.SaveChangesAsync(turnContext);
-            await Accessors.PrivateConversationState.SaveChangesAsync(turnContext);            
         }
 
         /// <summary>

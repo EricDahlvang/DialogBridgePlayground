@@ -6,7 +6,7 @@ Assist developers with migrating dotnet Bot Builder V3 projects to dotnet Bot Bu
 
 ## V3 Overview
 
-When converting an existing bot from Bot Builder V3 to Bot Builder V4, it is helpful to know the differences and similarities between the versions.  For instance, within V3 the dialog stack is mostly managed internally.  Developers use IDialogContext.Call or IDialogContext.Forward to push dialogs onto the stack. StartAsync is the initialization method for dialogs and is called automatically by the sdk.  In V3, IDialogContext.Wait and ResumeAfter delegates are used to dynamically set the continuation for which method should process the next message received from the user.  IDialogContext is created by the sdk, and passed to StartAsync and the continuation methods.  Three DataBags (UserData, ConversationData, PrivateConversationData) are auto-populated and available on IDialogContext.
+When converting an existing bot from Bot Builder V3 to Bot Builder V4, it is helpful to know the differences and similarities between the versions.  For instance, within V3 the dialog stack is mostly managed internally.  Developers use IDialogContext.Call or IDialogContext.Forward to push dialogs onto the stack. StartAsync is the initialization method for dialogs and is called automatically by the sdk.  In V3, IDialogContext.Wait and ResumeAfter delegates are used to dynamically set the continuation for which method should process the next message received from the user.  IDialogContext is created by the sdk, and passed to StartAsync and the continuation methods.  Three DataBags (UserData, ConversationData, PrivateConversationData) are auto-populated and available on IDialogContext. In V3 dialogs fields are auto-serailized into PrivateConversationData, and re-populated when the dialog is next loaded.
 
 ## V3 IDialogContext:
 
@@ -48,7 +48,7 @@ IBotData:
         
         Task LoadAsync(CancellationToken cancellationToken);
 		
-IBotToUser
+IBotToUser:
    
         IMessageActivity MakeMessage();
         
@@ -77,23 +77,23 @@ DialogContext:
 
         public DialogSet Dialogs { get; }
         
-		public ITurnContext Context { get; }
+        public ITurnContext Context { get; }
         
-		public List<DialogInstance> Stack { get; }
+	public List<DialogInstance> Stack { get; }
         
-		public DialogInstance ActiveDialog { get; }
+        public DialogInstance ActiveDialog { get; }
 
-		public Task<DialogTurnResult> BeginDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken));
+        public Task<DialogTurnResult> BeginDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken));
         
-		public Task<DialogTurnResult> CancelAllDialogsAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public Task<DialogTurnResult> CancelAllDialogsAsync(CancellationToken cancellationToken = default(CancellationToken));
         
-		public Task<DialogTurnResult> ContinueDialogAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public Task<DialogTurnResult> ContinueDialogAsync(CancellationToken cancellationToken = default(CancellationToken));
         
-		public Task<DialogTurnResult> EndDialogAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken));
+        public Task<DialogTurnResult> EndDialogAsync(object result = null, CancellationToken cancellationToken = default(CancellationToken));
         
-		public Task<DialogTurnResult> PromptAsync(string dialogId, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken));
+        public Task<DialogTurnResult> PromptAsync(string dialogId, PromptOptions options, CancellationToken cancellationToken = default(CancellationToken));
         
-		public Task<DialogTurnResult> ReplaceDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken));
+        public Task<DialogTurnResult> ReplaceDialogAsync(string dialogId, object options = null, CancellationToken cancellationToken = default(CancellationToken));
         
         public Task RepromptDialogAsync(CancellationToken cancellationToken = default(CancellationToken));
 		
@@ -101,26 +101,59 @@ ITurnContext:
 
         BotAdapter Adapter { get; }
         
-		TurnContextStateCollection TurnState { get; }
+        TurnContextStateCollection TurnState { get; }
         
-		Activity Activity { get; }
+        Activity Activity { get; }
         
-		bool Responded { get; }
+        bool Responded { get; }
 
-		Task DeleteActivityAsync(string activityId, CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteActivityAsync(string activityId, CancellationToken cancellationToken = default(CancellationToken));
         
-		Task DeleteActivityAsync(ConversationReference conversationReference, CancellationToken cancellationToken = default(CancellationToken));
+        Task DeleteActivityAsync(ConversationReference conversationReference, CancellationToken cancellationToken = default(CancellationToken));
         
-		ITurnContext OnDeleteActivity(DeleteActivityHandler handler);
+        ITurnContext OnDeleteActivity(DeleteActivityHandler handler);
         
-		ITurnContext OnSendActivities(SendActivitiesHandler handler);
+        ITurnContext OnSendActivities(SendActivitiesHandler handler);
         
-		ITurnContext OnUpdateActivity(UpdateActivityHandler handler);
+        ITurnContext OnUpdateActivity(UpdateActivityHandler handler);
         
-		Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ResourceResponse[]> SendActivitiesAsync(IActivity[] activities, CancellationToken cancellationToken = default(CancellationToken));
         
-		Task<ResourceResponse> SendActivityAsync(string textReplyToSend, string speak = null, string inputHint = "acceptingInput", CancellationToken cancellationToken = default(CancellationToken));
+        Task<ResourceResponse> SendActivityAsync(string textReplyToSend, string speak = null, string inputHint = "acceptingInput", CancellationToken cancellationToken = default(CancellationToken));
         
-		Task<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken));
+        Task<ResourceResponse> SendActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken));
         
         Task<ResourceResponse> UpdateActivityAsync(IActivity activity, CancellationToken cancellationToken = default(CancellationToken));
+
+# V3-V4 Migration Methods
+
+## Manual Re-Write using Microsoft.Bot.Builder.Integration
+
+The [Microsoft.Bot.Builder.Integration.AspNet.WebApi](https://github.com/Microsoft/botbuilder-dotnet/tree/master/libraries/integration/Microsoft.Bot.Builder.Integration.AspNet.WebApi) and [Microsoft.Bot.Builder.Integration.AspNet.Core](https://github.com/Microsoft/botbuilder-dotnet/tree/master/libraries/integration/Microsoft.Bot.Builder.Integration.AspNet.Core) libraries provide support for V4 bots.  These libraries use HttpClient Message Handlers that call into your IBot's OnTurn method.  Samples can be here: [csharp_webapi](https://github.com/Microsoft/BotBuilder-Samples/tree/master/samples/csharp_webapi) and [csharp_dotnetcore](https://github.com/Microsoft/BotBuilder-Samples/tree/master/samples/csharp_dotnetcore) 
+
+## Create Adapter in WebAPI Controller 
+
+Migration Guidelines:
+
+
+- upgrade Microsoft.Bot.Builder and Microsoft.Bot.Builder.Azure packages to 4.2.0
+
+- add Microsoft.Bot.Builder.Dialogs
+
+- Remove 'using' references to the following: (these no longer exist)
+	
+        using Microsoft.Bot.Builder.Internals.Fibers;
+
+        using Microsoft.Bot.Builder.Dialogs.Internals;
+        
+        using Microsoft.Bot.Builder.Scorables;
+	
+        using Microsoft.Bot.Builder.Autofac.Base;
+
+- string replace "IDialogContext" with "DialogContext"
+	
+- Remove Scorables which are not in V4.  Global interruptions are done differently now (within OnTurn itself)
+	
+- add "using Microsoft.Bot.Schema;" to files where it is needed
+	
+- Remove references to ActivityTypes.Ping this activity type no longer exists

@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Configuration;
+using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using V3Migration;
 
 namespace V4NetCoreBot
 {
     public class Startup
     {
+        private bool _isProduction = false;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -47,9 +47,22 @@ namespace V4NetCoreBot
                         ";
                 throw new InvalidOperationException(msg);
             }
-
+            
+            services.AddSingleton(sp => GetCredentialProvider(botConfig));
             services.AddSingleton(sp => botConfig);
             services.AddSingleton(sp => GetAccessors());
+        }
+
+        private ICredentialProvider GetCredentialProvider(BotConfiguration botConfig)
+        {
+            var environment = _isProduction ? "production" : "development";
+            var service = botConfig.Services.FirstOrDefault(s => s.Type == "endpoint" && s.Name == environment);
+            if (!(service is EndpointService endpointService))
+            {
+                throw new InvalidOperationException($"The .bot file does not contain an endpoint with name '{environment}'.");
+            }
+
+            return new SimpleCredentialProvider(endpointService.AppId, endpointService.AppPassword);
         }
 
         private BotAccessors GetAccessors()
@@ -78,6 +91,8 @@ namespace V4NetCoreBot
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            _isProduction = env.IsProduction();
 
             app.UseMvc();
         }
