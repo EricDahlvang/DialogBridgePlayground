@@ -173,12 +173,14 @@ WebAPI Controller Migration Guidelines:
 
 ## V4 Additional References
 
-- https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-dialog-manage-complex-conversation-flow
+- [Implement sequential conversation flow](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-dialog-manage-conversation-flow)
 
-- https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-prompts
+- [Create advanced conversation flow using branches and loops](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-dialog-manage-complex-conversation-flow)
 
-- https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-concept-state
+- [Gather user input using a dialog prompt](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-prompts)
 
-- https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-v4-state?tabs=csharp
+- [Managing state](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-concept-state)
 
-- https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-custom-storage
+- [Save user and conversation data](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-howto-v4-state?tabs=csharp)
+
+- [Implement custom storage for your bot](https://docs.microsoft.com/en-us/azure/bot-service/bot-builder-custom-storage)
