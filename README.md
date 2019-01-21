@@ -4,6 +4,14 @@
 
 Assist developers with migrating dotnet Bot Builder V3 projects to dotnet Bot Builder V4 by providing some examples and a high level overview of the differences and similarities.
 
+## Video Example Demonstration
+
+[YouTube: Microsoft Bot Builder V3 to V4](https://www.youtube.com/watch?v=q1vYa-2tSIs)
+
+
+
+![alt text](https://github.com/EricDahlvang/DialogBridgePlayground/blob/master/V3-V4.png "V3 to V4")
+
 ## V3 Overview
 
 When converting an existing bot from Bot Builder V3 to Bot Builder V4, it is helpful to know the differences and similarities between the versions.  For instance, within V3 the dialog stack is mostly managed internally.  Developers use IDialogContext.Call or IDialogContext.Forward to push dialogs onto the stack. StartAsync is the initialization method for dialogs and is called automatically by the sdk.  In V3, IDialogContext.Wait and ResumeAfter delegates are used to dynamically set the continuation for which method should process the next message received from the user.  IDialogContext is created by the sdk, and passed to StartAsync and the continuation methods.  Three DataBags (UserData, ConversationData, PrivateConversationData) are auto-populated and available on IDialogContext. In V3 dialogs fields are auto-serailized into PrivateConversationData, and re-populated when the dialog is next loaded.
